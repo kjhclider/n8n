@@ -1,6 +1,17 @@
-// server.js
-import { File } from 'undici';
-if (!globalThis.File) globalThis.File = File;
+// ---- File polyfill for Node 18 (no external imports) ----
+if (typeof globalThis.File === 'undefined') {
+  globalThis.File = class File extends Blob {
+    constructor(bits, name, opts = {}) {
+      super(bits, opts);
+      this.name = String(name ?? '');
+      this.lastModified = opts.lastModified ?? Date.now();
+      this.webkitRelativePath = '';
+    }
+    get [Symbol.toStringTag]() { return 'File'; }
+  };
+}
+// ----------------------------------------------------------
+
 
 import express from 'express';
 import Timetable from 'comcigan-parser';

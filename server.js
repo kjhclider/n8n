@@ -1,15 +1,14 @@
 // ============================================
-// ✅ File Polyfill (Node 18용)
+// ✅ File Polyfill (Node 18/20용) - 의존성 로드 전에 반드시 실행
 // ============================================
-if (typeof globalThis.File === 'undefined') {
-  globalThis.File = class File extends Blob {
+if (typeof global.File === 'undefined') {
+  global.File = class File extends Blob {
     constructor(bits, name, opts = {}) {
       super(bits, opts);
       this.name = String(name ?? '');
       this.lastModified = opts.lastModified ?? Date.now();
       this.webkitRelativePath = '';
     }
-
     get [Symbol.toStringTag]() {
       return 'File';
     }
@@ -17,20 +16,20 @@ if (typeof globalThis.File === 'undefined') {
 }
 
 // ============================================
-// ✅ Express + comcigan-parser API Server
+// ✅ CommonJS 방식으로 의존성 로드 (폴리필 이후)
 // ============================================
-import express from 'express';
-import Timetable from 'comcigan-parser';
+const express = require('express');
+const Timetable = require('comcigan-parser');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// ✅ 기본 페이지 (서버 정상 동작 확인용)
+// 헬스 체크
 app.get('/', (_req, res) => {
   res.status(200).send('✅ COMCI Timetable API is running');
 });
 
-// ✅ 실제 시간표 API
+// 실제 시간표 API
 app.get('/timetable', async (req, res) => {
   try {
     const code = Number(req.query.code);
@@ -40,11 +39,10 @@ app.get('/timetable', async (req, res) => {
     if (!code || !grade || !klass) {
       return res.status(400).json({
         ok: false,
-        error: 'Missing query parameters: code, grade, class'
+        error: 'Missing query parameters: code, grade, class',
       });
     }
 
-    // ✅ comcigan init
     const comci = new Timetable();
     await comci.init();
     comci.setSchool(code);
@@ -55,7 +53,7 @@ app.get('/timetable', async (req, res) => {
     if (!days) {
       return res.status(404).json({
         ok: false,
-        error: 'No timetable data found for the given grade/class'
+        error: 'No timetable data found for the given grade/class',
       });
     }
 
@@ -64,19 +62,14 @@ app.get('/timetable', async (req, res) => {
       schoolCode: code,
       grade,
       class: klass,
-      timetable: days
+      timetable: days,
     });
-
   } catch (err) {
     console.error('❌ Error:', err);
-    res.status(500).json({
-      ok: false,
-      error: String(err?.message || err)
-    });
+    res.status(500).json({ ok: false, error: String(err?.message || err) });
   }
 });
 
-// ✅ 서버 시작
 app.listen(PORT, () => {
   console.log(`✅ COMCI API server running on http://localhost:${PORT}`);
 });

@@ -1,8 +1,9 @@
 {
   "name": "comci-api",
   "version": "1.0.0",
-  "description": "Simple API wrapper for Comcigan timetable for use with n8n.",
+  "description": "Simple COMCI timetable API for n8n",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
@@ -11,6 +12,6 @@
     "express": "^4.18.2"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=18"
   }
 }
